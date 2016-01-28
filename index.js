@@ -4,6 +4,7 @@ const ece       = require('http_ece');
 const url       = require('url');
 const https     = require('https');
 const colors    = require('colors');
+const ecdh    = require('ecdh');
 
 function WebPushError(message, statusCode, headers) {
   Error.captureStackTrace(this, this.constructor);
@@ -23,12 +24,10 @@ function setGCMAPIKey(apiKey) {
 }
 
 function encrypt(userPublicKey, payload) {
-  var localCurve = crypto.createECDH('prime256v1');
+  var localCurve = ecdh.getCurve('prime256v1');
 
-  var localPublicKey = localCurve.generateKeys();
-  var localPrivateKey = localCurve.getPrivateKey();
-
-  var sharedSecret = localCurve.computeSecret(userPublicKey);
+  var localPublicKey = localCurve.publicKey.buffer.toString('hex');
+  var sharedSecret = localCurve.privateKey.deriveSharedSecret(localCurve.publicKey);
 
   var salt = crypto.randomBytes(16);
 
